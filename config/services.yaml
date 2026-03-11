@@ -1,0 +1,20 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  App\:
+    resource: "../src/"
+    exclude:
+      - "../src/DependencyInjection/"
+      - "../src/Entity/"
+      - "../src/Kernel.php"
+
+  # ── JWT enrichment listener ──────────────────────────────
+  App\EventListener\JwtCreatedListener:
+    tags:
+      - {
+          name: kernel.event_listener,
+          event: lexik_jwt_authentication.on_jwt_created,
+          method: onJWTCreated,
+        }

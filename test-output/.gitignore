@@ -1,0 +1,17 @@
+# Ignore test scripts and outputs
+*.log
+*.tmp
+*.bak
+*.sh
+*.pyc
+__pycache__/
+
+# Ignore editor and system files
+.DS_Store
+.idea/
+Thumbs.db
+
+# Ignore build and cache
+build/
+dist/
+cache/

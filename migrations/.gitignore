@@ -1,0 +1,12 @@
+# Ignore migration files
+*.php
+
+# Ignore editor and system files
+.DS_Store
+.idea/
+Thumbs.db
+
+# Ignore build and cache
+build/
+dist/
+cache/
