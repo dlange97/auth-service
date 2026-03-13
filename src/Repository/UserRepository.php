@@ -26,6 +26,14 @@ class UserRepository extends ServiceEntityRepository
         return $this->findOneBy(['email' => $email]);
     }
 
+    public function findActiveByEmail(string $email): ?User
+    {
+        return $this->findOneBy([
+            'email' => $email,
+            'status' => User::STATUS_ACTIVE,
+        ]);
+    }
+
     /**
      * @param string $id UUID string (char(36))
      */

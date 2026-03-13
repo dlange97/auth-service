@@ -18,7 +18,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-#[Route('/api/auth', name: 'api_auth_manage_')]
+#[Route('/auth', name: 'auth_manage_')]
 class UserManagementController extends AbstractController
 {
     public function __construct(
@@ -67,19 +67,26 @@ class UserManagementController extends AbstractController
         }
 
         $users = $this->userRepository->findAllOrdered();
-        $payload = array_map(function (User $user): array {
-            return [
-                'id' => $user->getId(),
-                'email' => $user->getEmail(),
-                'firstName' => $user->getFirstName(),
-                'lastName' => $user->getLastName(),
-                'roles' => $user->getRoles(),
-                'permissions' => $this->permissionService->getPermissionsForUser($user),
-                'createdAt' => $user->getCreatedAt()?->format('c'),
-            ];
-        }, $users);
+        $payload = array_map(fn(User $user): array => $this->serializeUser($user), $users);
 
         return $this->json($payload);
+    }
+
+    #[Route('/users/{id}', name: 'users_show', methods: ['GET'])]
+    public function showUser(string $id): JsonResponse
+    {
+        /** @var User $currentUser */
+        $currentUser = $this->getUser();
+        if (!$this->permissionService->userHasPermission($currentUser, 'users.view')) {
+            return $this->json(['error' => 'Forbidden. Missing permission: users.view'], Response::HTTP_FORBIDDEN);
+        }
+
+        $user = $this->userRepository->findById($id);
+        if (!$user) {
+            return $this->json(['error' => 'User not found.'], Response::HTTP_NOT_FOUND);
+        }
+
+        return $this->json($this->serializeUser($user));
     }
 
     #[Route('/users', name: 'users_create', methods: ['POST'])]
@@ -137,15 +144,7 @@ class UserManagementController extends AbstractController
 
         return $this->json([
             'message' => 'User created successfully.',
-            'user' => [
-                'id' => $user->getId(),
-                'email' => $user->getEmail(),
-                'firstName' => $user->getFirstName(),
-                'lastName' => $user->getLastName(),
-                'roles' => $user->getRoles(),
-                'permissions' => $this->permissionService->getPermissionsForUser($user),
-                'createdAt' => $user->getCreatedAt()?->format('c'),
-            ],
+            'user' => $this->serializeUser($user),
         ], Response::HTTP_CREATED);
     }
 
@@ -179,8 +178,112 @@ class UserManagementController extends AbstractController
                 'id' => $user->getId(),
                 'email' => $user->getEmail(),
                 'roles' => $user->getRoles(),
+                'status' => $user->getStatus(),
                 'permissions' => $this->permissionService->getPermissionsForUser($user),
             ],
         ]);
+    }
+
+    #[Route('/users/{id}', name: 'users_update', methods: ['PATCH'])]
+    public function updateUser(string $id, Request $request): JsonResponse
+    {
+        /** @var User $currentUser */
+        $currentUser = $this->getUser();
+        if (!$this->permissionService->userHasPermission($currentUser, 'users.assign_roles')) {
+            return $this->json(['error' => 'Forbidden. Missing permission: users.assign_roles'], Response::HTTP_FORBIDDEN);
+        }
+
+        $user = $this->userRepository->findById($id);
+        if (!$user) {
+            return $this->json(['error' => 'User not found.'], Response::HTTP_NOT_FOUND);
+        }
+
+        $data = json_decode($request->getContent(), true) ?? [];
+
+        if (array_key_exists('email', $data)) {
+            $email = trim((string) $data['email']);
+            if ($email === '') {
+                return $this->json(['error' => 'Email cannot be empty.'], Response::HTTP_BAD_REQUEST);
+            }
+
+            $existing = $this->userRepository->findByEmail($email);
+            if ($existing && $existing->getId() !== $user->getId()) {
+                return $this->json(['error' => 'An account with this email already exists.'], Response::HTTP_CONFLICT);
+            }
+
+            $user->setEmail($email);
+        }
+
+        if (array_key_exists('firstName', $data)) {
+            $user->setFirstName($data['firstName'] !== null ? trim((string) $data['firstName']) : null);
+        }
+
+        if (array_key_exists('lastName', $data)) {
+            $user->setLastName($data['lastName'] !== null ? trim((string) $data['lastName']) : null);
+        }
+
+        if (array_key_exists('role', $data)) {
+            $role = (string) $data['role'];
+            if (!$this->permissionService->isRoleSupported($role)) {
+                return $this->json(['error' => 'Unsupported role.'], Response::HTTP_BAD_REQUEST);
+            }
+            $user->setRoles([$role]);
+        }
+
+        $errors = $this->validator->validate($user);
+        if (count($errors) > 0) {
+            $messages = [];
+            foreach ($errors as $error) {
+                $messages[] = $error->getPropertyPath() . ': ' . $error->getMessage();
+            }
+
+            return $this->json(['errors' => $messages], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $this->em->flush();
+
+        return $this->json([
+            'message' => 'User updated successfully.',
+            'user' => $this->serializeUser($user),
+        ]);
+    }
+
+    #[Route('/users/{id}', name: 'users_delete', methods: ['DELETE'])]
+    public function softDeleteUser(string $id): JsonResponse
+    {
+        /** @var User $currentUser */
+        $currentUser = $this->getUser();
+        if (!$this->permissionService->userHasPermission($currentUser, 'users.assign_roles')) {
+            return $this->json(['error' => 'Forbidden. Missing permission: users.assign_roles'], Response::HTTP_FORBIDDEN);
+        }
+
+        $user = $this->userRepository->findById($id);
+        if (!$user) {
+            return $this->json(['error' => 'User not found.'], Response::HTTP_NOT_FOUND);
+        }
+
+        if ($currentUser->getId() === $user->getId()) {
+            return $this->json(['error' => 'You cannot deactivate your own account.'], Response::HTTP_CONFLICT);
+        }
+
+        $user->setStatus(User::STATUS_INACTIVE);
+        $this->em->flush();
+
+        return $this->json(null, Response::HTTP_NO_CONTENT);
+    }
+
+    /** @return array<string, mixed> */
+    private function serializeUser(User $user): array
+    {
+        return [
+            'id' => $user->getId(),
+            'email' => $user->getEmail(),
+            'firstName' => $user->getFirstName(),
+            'lastName' => $user->getLastName(),
+            'roles' => $user->getRoles(),
+            'status' => $user->getStatus(),
+            'permissions' => $this->permissionService->getPermissionsForUser($user),
+            'createdAt' => $user->getCreatedAt()?->format('c'),
+        ];
     }
 }

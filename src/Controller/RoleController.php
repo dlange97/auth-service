@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-#[Route('/api/auth/roles', name: 'api_auth_roles_')]
+#[Route('/auth/roles', name: 'auth_roles_')]
 class RoleController extends AbstractController
 {
     public function __construct(
@@ -26,9 +26,6 @@ class RoleController extends AbstractController
         private readonly EntityManagerInterface    $em,
     ) {}
 
-    /**
-     * GET /api/auth/roles – list all role definitions (system + custom)
-     */
     #[Route('', name: 'list', methods: ['GET'])]
     public function listRoles(): JsonResponse
     {
@@ -41,10 +38,6 @@ class RoleController extends AbstractController
         return $this->json(array_map($this->serialize(...), $this->roleRepo->findAllOrdered()));
     }
 
-    /**
-     * POST /api/auth/roles – create a new custom role
-     * Body: { "name": "My Role", "slug": "ROLE_MY_ROLE", "permissions": ["dashboard.view", ...] }
-     */
     #[Route('', name: 'create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
@@ -61,9 +54,6 @@ class RoleController extends AbstractController
         return $this->applyAndSave($role, $data, Response::HTTP_CREATED);
     }
 
-    /**
-     * PUT /api/auth/roles/{id} – update a custom role (system roles: name only)
-     */
     #[Route('/{id}', name: 'update', methods: ['PUT'])]
     public function update(int $id, Request $request): JsonResponse
     {
@@ -92,9 +82,6 @@ class RoleController extends AbstractController
         return $this->applyAndSave($role, $data, Response::HTTP_OK);
     }
 
-    /**
-     * DELETE /api/auth/roles/{id} – delete a custom role (system roles cannot be deleted)
-     */
     #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
     public function delete(int $id): JsonResponse
     {

@@ -3,6 +3,12 @@ framework:
   http_method_override: false
   handle_all_throwables: true
 
+  messenger:
+    transports:
+      async: "%env(MESSENGER_TRANSPORT_DSN)%"
+    routing:
+      'MyDashboard\Shared\Message\RequestAccessNotificationMessage': async
+
   php_errors:
     log: true
 

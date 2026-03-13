@@ -18,7 +18,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Ramsey\Uuid\Uuid;
 
-#[Route('/api/auth', name: 'api_auth_')]
+#[Route('/auth', name: 'auth_')]
 class AuthController extends AbstractController
 {
     public function __construct(
@@ -159,6 +159,7 @@ class AuthController extends AbstractController
             'firstName' => $user->getFirstName(),
             'lastName'  => $user->getLastName(),
             'roles'     => $user->getRoles(),
+            'status'    => $user->getStatus(),
             'permissions' => $this->permissionService->getPermissionsForUser($user),
             'createdAt' => $user->getCreatedAt()?->format('c'),
         ];

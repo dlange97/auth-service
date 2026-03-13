@@ -2,8 +2,11 @@ FROM php:8.3-fpm-alpine
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-RUN apk add --no-cache icu-dev libzip-dev openssl bash \
-    && docker-php-ext-install intl pdo_mysql zip opcache
+RUN apk add --no-cache icu-dev libzip-dev openssl bash rabbitmq-c rabbitmq-c-dev $PHPIZE_DEPS \
+    && pecl install amqp \
+    && docker-php-ext-enable amqp \
+    && docker-php-ext-install intl pdo_mysql zip opcache \
+    && apk del $PHPIZE_DEPS rabbitmq-c-dev
 
 COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 

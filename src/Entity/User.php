@@ -21,6 +21,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     use TimestampableTrait;
 
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_INACTIVE = 'inactive';
+
     #[ORM\Id]
     #[ORM\Column(type: Types::STRING, length: 36, unique: true)]
     private ?string $id = null;
@@ -42,6 +45,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(nullable: true)]
     private ?string $password = null;
+
+    #[ORM\Column(length: 20, options: ['default' => self::STATUS_ACTIVE])]
+    private string $status = self::STATUS_ACTIVE;
 
     public function getId(): ?string
     {
@@ -116,6 +122,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->password = $password;
         return $this;
+    }
+
+    public function getStatus(): string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): static
+    {
+        $this->status = $status;
+        return $this;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE;
     }
 
     public function eraseCredentials(): void {}
