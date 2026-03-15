@@ -8,6 +8,8 @@ use App\Entity\User;
 use App\Repository\RoleDefinitionRepository;
 use App\Repository\UserRepository;
 use App\Security\PermissionService;
+use App\Service\PermissionGuard;
+use App\Service\UserListingService;
 use Doctrine\ORM\EntityManagerInterface;
 use Ramsey\Uuid\Uuid;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,6 +28,8 @@ class UserManagementController extends AbstractController
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly ValidatorInterface $validator,
         private readonly PermissionService $permissionService,
+        private readonly PermissionGuard $permissionGuard,
+        private readonly UserListingService $userListingService,
         private readonly EntityManagerInterface $em,
         private readonly RoleDefinitionRepository $roleRepo,
     ) {
@@ -36,9 +40,7 @@ class UserManagementController extends AbstractController
     {
         /** @var User $currentUser */
         $currentUser = $this->getUser();
-        if (!$this->permissionService->userHasPermission($currentUser, 'settings.view')) {
-            return $this->json(['error' => 'Forbidden. Missing permission: settings.view'], Response::HTTP_FORBIDDEN);
-        }
+        $this->permissionGuard->ensure($currentUser, 'settings.view');
 
         return $this->json([
             'roles'           => $this->permissionService->getSupportedRoles(),
@@ -46,11 +48,12 @@ class UserManagementController extends AbstractController
             'rolePermissions' => $this->permissionService->getRolePermissionsMap(),
             'roleDefinitions' => array_map(
                 fn($r) => [
-                    'id'          => $r->getId(),
-                    'name'        => $r->getName(),
-                    'slug'        => $r->getSlug(),
-                    'permissions' => $r->getPermissions(),
-                    'isSystem'    => $r->isSystem(),
+                    'id'                 => $r->getId(),
+                    'name'               => $r->getName(),
+                    'slug'               => $r->getSlug(),
+                    'permissions'        => $r->getPermissions(),
+                    'isSystem'           => $r->isSystem(),
+                    'assignedUsersCount' => $this->userRepository->countByRoleSlug($r->getSlug()),
                 ],
                 $this->roleRepo->findAllOrdered(),
             ),
@@ -58,18 +61,17 @@ class UserManagementController extends AbstractController
     }
 
     #[Route('/users', name: 'users_list', methods: ['GET'])]
-    public function listUsers(): JsonResponse
+    public function listUsers(Request $request): JsonResponse
     {
         /** @var User $currentUser */
         $currentUser = $this->getUser();
-        if (!$this->permissionService->userHasPermission($currentUser, 'users.view')) {
-            return $this->json(['error' => 'Forbidden. Missing permission: users.view'], Response::HTTP_FORBIDDEN);
-        }
+        $this->permissionGuard->ensure($currentUser, 'users.view');
 
-        $users = $this->userRepository->findAllOrdered();
-        $payload = array_map(fn(User $user): array => $this->serializeUser($user), $users);
+        $search = trim((string) $request->query->get('search', ''));
+        $page = max(1, (int) $request->query->get('page', 1));
+        $perPage = min(100, max(1, (int) $request->query->get('perPage', 10)));
 
-        return $this->json($payload);
+        return $this->json($this->userListingService->listUsers($search, $page, $perPage));
     }
 
     #[Route('/users/{id}', name: 'users_show', methods: ['GET'])]

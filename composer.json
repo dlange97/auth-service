@@ -35,8 +35,12 @@
     "symfony/yaml": "^7.2"
   },
   "require-dev": {
+    "phpstan/phpstan": "^1.12",
+    "phpunit/phpunit": "^11.0",
+    "squizlabs/php_codesniffer": "^3.11",
     "symfony/debug-bundle": "^7.2",
     "symfony/maker-bundle": "^1.62",
+    "symfony/phpunit-bridge": "^7.2",
     "symfony/web-profiler-bundle": "^7.2"
   },
   "repositories": [
@@ -69,6 +73,14 @@
     }
   },
   "scripts": {
+    "lint:phpcs": "vendor/bin/phpcs --standard=phpcs.xml.dist --warning-severity=0 src tests",
+    "lint:phpstan": "vendor/bin/phpstan analyse --configuration=phpstan.neon.dist --no-progress",
+    "test": "php bin/phpunit",
+    "quality": [
+      "@lint:phpcs",
+      "@lint:phpstan",
+      "@test"
+    ],
     "auto-scripts": {
       "cache:clear": "symfony-cmd",
       "assets:install %PUBLIC_DIR%": "symfony-cmd"

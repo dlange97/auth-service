@@ -35,6 +35,7 @@ class RoleDefinition
     private string $slug = '';
 
     /** Ordered list of permission strings granted by this role */
+    /** @var list<string> */
     #[ORM\Column(type: Types::JSON)]
     private array $permissions = [];
 
@@ -71,11 +72,13 @@ class RoleDefinition
         return $this;
     }
 
+    /** @return list<string> */
     public function getPermissions(): array
     {
         return $this->permissions;
     }
 
+    /** @param list<string> $permissions */
     public function setPermissions(array $permissions): static
     {
         $this->permissions = array_values(array_unique($permissions));

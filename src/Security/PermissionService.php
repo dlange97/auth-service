@@ -11,7 +11,8 @@ class PermissionService
 {
     public function __construct(
         private readonly ?RoleDefinitionRepository $roleRepo = null,
-    ) {}
+    ) {
+    }
 
 
     public const ROLE_ADMIN = 'ROLE_ADMIN';
@@ -73,6 +74,7 @@ class PermissionService
         ],
     ];
 
+    /** @return list<string> */
     public function getSupportedRoles(): array
     {
         $static = array_keys(self::ROLE_PERMISSIONS);
@@ -98,6 +100,7 @@ class PermissionService
         return false;
     }
 
+    /** @return list<string> */
     public function getAllPermissions(): array
     {
         $all = [];
@@ -108,6 +111,7 @@ class PermissionService
         return array_values(array_unique($all));
     }
 
+    /** @return array<string, list<string>> */
     public function getRolePermissionsMap(): array
     {
         $map = self::ROLE_PERMISSIONS;
@@ -123,6 +127,10 @@ class PermissionService
         return $map;
     }
 
+    /**
+     * @param list<string> $roles
+     * @return list<string>
+     */
     public function getPermissionsForRoles(array $roles): array
     {
         $permissions = [];
@@ -143,6 +151,7 @@ class PermissionService
         return array_values(array_unique($permissions));
     }
 
+    /** @return list<string> */
     public function getPermissionsForUser(User $user): array
     {
         return $this->getPermissionsForRoles($user->getRoles());
@@ -153,4 +162,3 @@ class PermissionService
         return in_array($permission, $this->getPermissionsForUser($user), true);
     }
 }
-

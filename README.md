@@ -25,4 +25,9 @@ docker compose -f ../../my-dashboard-docker/docker-compose.yml exec -T auth-php 
 
 # Create or update test admin user
 docker compose -f ../../my-dashboard-docker/docker-compose.yml exec -T auth-php php bin/console app:create-test-user --email admin.test@micro.com --password Admin123! --firstName Admin --lastName Test --role ROLE_ADMIN --upsert
+
+# Quality checks (PHPCS + PHPStan)
+docker compose -f ../../my-dashboard-docker/docker-compose.yml exec -T auth-php composer run quality
 ```
+
+Run quality checks after every code change in this service.

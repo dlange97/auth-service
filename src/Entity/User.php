@@ -140,5 +140,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->status === self::STATUS_ACTIVE;
     }
 
-    public function eraseCredentials(): void {}
+    public function eraseCredentials(): void
+    {
+    }
 }

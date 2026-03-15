@@ -14,8 +14,7 @@ class JwtCreatedListener
     public function __construct(
         private readonly PermissionService $permissionService,
         private readonly JwtSessionTtlResolver $jwtSessionTtlResolver,
-    )
-    {
+    ) {
     }
 
     public function onJWTCreated(JWTCreatedEvent $event): void
