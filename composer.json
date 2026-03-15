@@ -74,7 +74,7 @@
   },
   "scripts": {
     "lint:phpcs": "vendor/bin/phpcs --standard=phpcs.xml.dist --warning-severity=0 src tests",
-    "lint:phpstan": "vendor/bin/phpstan analyse --configuration=phpstan.neon.dist --no-progress",
+    "lint:phpstan": "vendor/bin/phpstan analyse --configuration=phpstan.neon.dist --no-progress --memory-limit=1G",
     "test": "php bin/phpunit",
     "quality": [
       "@lint:phpcs",
