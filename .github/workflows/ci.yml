@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+
+jobs:
+  quality-and-unit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          coverage: none
+          extensions: ctype, iconv, intl, pdo_mysql
+          tools: composer:v2
+
+      - name: Clone shared-bundle dependency
+        run: git clone --depth 1 https://github.com/dlange97/shared-bundle.git ../shared-bundle
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Run PHPCS
+        run: composer run lint:phpcs
+
+      - name: Run PHPStan
+        run: composer run lint:phpstan
+
+      - name: Run unit tests
+        env:
+          APP_ENV: test
+        run: composer run test
