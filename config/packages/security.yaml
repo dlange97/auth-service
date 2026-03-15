@@ -14,28 +14,31 @@ security:
       security: false
 
     health:
-      pattern: ^/api/health$
+      pattern: ^/auth/health$
       security: false
 
     login:
-      pattern: ^/api/auth/login$
+      pattern: ^/auth/login$
       stateless: true
+      user_checker: App\Security\UserChecker
       json_login:
-        check_path: api_auth_login
+        check_path: auth_login
         username_path: email
         password_path: password
         success_handler: lexik_jwt_authentication.handler.authentication_success
         failure_handler: lexik_jwt_authentication.handler.authentication_failure
 
     api:
-      pattern: ^/api/
+      pattern: ^/auth/
       stateless: true
       provider: app_user_provider
+      user_checker: App\Security\UserChecker
       jwt: ~
       entry_point: jwt
 
   access_control:
-    - { path: ^/api/health, roles: PUBLIC_ACCESS }
-    - { path: ^/api/auth/login, roles: PUBLIC_ACCESS }
-    - { path: ^/api/auth/request-access, roles: PUBLIC_ACCESS }
-    - { path: ^/api/, roles: ROLE_USER }
+    - { path: ^/auth/health, roles: PUBLIC_ACCESS }
+    - { path: ^/auth/docs(?:\.json)?$, roles: PUBLIC_ACCESS }
+    - { path: ^/auth/login, roles: PUBLIC_ACCESS }
+    - { path: ^/auth/request-access, roles: PUBLIC_ACCESS }
+    - { path: ^/auth/, roles: ROLE_USER }

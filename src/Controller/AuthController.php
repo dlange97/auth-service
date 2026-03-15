@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Security\PermissionService;
 use App\Service\NotificationGateway;
+use App\Service\PermissionGuard;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,7 +19,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Ramsey\Uuid\Uuid;
 
-#[Route('/api/auth', name: 'api_auth_')]
+#[Route('/auth', name: 'auth_')]
 class AuthController extends AbstractController
 {
     public function __construct(
@@ -28,15 +29,15 @@ class AuthController extends AbstractController
         private readonly ValidatorInterface $validator,
         private readonly PermissionService $permissionService,
         private readonly NotificationGateway $notificationGateway,
-    ) {}
+        private readonly PermissionGuard $permissionGuard,
+    ) {
+    }
     #[Route('/register', name: 'register', methods: ['POST'])]
     public function register(Request $request): JsonResponse
     {
-        /** @var User|null $currentUser */
+        /** @var User $currentUser */
         $currentUser = $this->getUser();
-        if (!$currentUser || !$this->permissionService->userHasPermission($currentUser, 'users.create')) {
-            return $this->json(['error' => 'Forbidden. Missing permission: users.create'], Response::HTTP_FORBIDDEN);
-        }
+        $this->permissionGuard->ensure($currentUser, 'users.create');
 
         $data = json_decode($request->getContent(), true) ?? [];
         $email = trim($data['email'] ?? '');
@@ -151,6 +152,18 @@ class AuthController extends AbstractController
         ], Response::HTTP_ACCEPTED);
     }
 
+    /**
+     * @return array{
+     *   id: string|null,
+     *   email: string|null,
+     *   firstName: string|null,
+     *   lastName: string|null,
+     *   roles: list<string>,
+     *   status: string,
+     *   permissions: list<string>,
+     *   createdAt: string|null
+     * }
+     */
     private function serializeUser(User $user): array
     {
         return [
@@ -159,6 +172,7 @@ class AuthController extends AbstractController
             'firstName' => $user->getFirstName(),
             'lastName'  => $user->getLastName(),
             'roles'     => $user->getRoles(),
+            'status'    => $user->getStatus(),
             'permissions' => $this->permissionService->getPermissionsForUser($user),
             'createdAt' => $user->getCreatedAt()?->format('c'),
         ];

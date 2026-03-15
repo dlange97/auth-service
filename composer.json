@@ -16,12 +16,16 @@
     "doctrine/doctrine-migrations-bundle": "^3.4",
     "doctrine/orm": "^3.3",
     "lexik/jwt-authentication-bundle": "^3.1",
+    "nelmio/api-doc-bundle": "^5.1",
+    "mydashboard/shared-bundle": "^1.0",
     "nelmio/cors-bundle": "^2.5",
     "ramsey/uuid": "^4.9",
     "symfony/console": "^7.2",
     "symfony/dotenv": "^7.2",
     "symfony/flex": "^2.4",
     "symfony/framework-bundle": "^7.2",
+    "symfony/amqp-messenger": "7.2.*",
+    "symfony/messenger": "7.2.*",
     "symfony/password-hasher": "^7.2",
     "symfony/runtime": "^7.2",
     "symfony/security-bundle": "^7.2",
@@ -31,10 +35,23 @@
     "symfony/yaml": "^7.2"
   },
   "require-dev": {
+    "phpstan/phpstan": "^1.12",
+    "phpunit/phpunit": "^11.0",
+    "squizlabs/php_codesniffer": "^3.11",
     "symfony/debug-bundle": "^7.2",
     "symfony/maker-bundle": "^1.62",
+    "symfony/phpunit-bridge": "^7.2",
     "symfony/web-profiler-bundle": "^7.2"
   },
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../shared-bundle",
+      "options": {
+        "symlink": true
+      }
+    }
+  ],
   "config": {
     "allow-plugins": {
       "symfony/flex": true,
@@ -56,6 +73,14 @@
     }
   },
   "scripts": {
+    "lint:phpcs": "vendor/bin/phpcs --standard=phpcs.xml.dist --warning-severity=0 src tests",
+    "lint:phpstan": "vendor/bin/phpstan analyse --configuration=phpstan.neon.dist --no-progress --memory-limit=1G",
+    "test": "php bin/phpunit",
+    "quality": [
+      "@lint:phpcs",
+      "@lint:phpstan",
+      "@test"
+    ],
     "auto-scripts": {
       "cache:clear": "symfony-cmd",
       "assets:install %PUBLIC_DIR%": "symfony-cmd"

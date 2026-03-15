@@ -26,6 +26,14 @@ class UserRepository extends ServiceEntityRepository
         return $this->findOneBy(['email' => $email]);
     }
 
+    public function findActiveByEmail(string $email): ?User
+    {
+        return $this->findOneBy([
+            'email' => $email,
+            'status' => User::STATUS_ACTIVE,
+        ]);
+    }
+
     /**
      * @param string $id UUID string (char(36))
      */
@@ -41,5 +49,52 @@ class UserRepository extends ServiceEntityRepository
             ->orderBy('u.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @return array{items:list<User>,total:int,page:int,perPage:int,totalPages:int}
+     */
+    public function findPaginated(string $search, int $page, int $perPage): array
+    {
+        $qb = $this->createQueryBuilder('u');
+        $search = trim($search);
+
+        if ($search !== '') {
+            $term = '%' . mb_strtolower($search) . '%';
+            $qb
+                ->andWhere("LOWER(u.email) LIKE :term OR LOWER(COALESCE(u.firstName, '')) LIKE :term OR LOWER(COALESCE(u.lastName, '')) LIKE :term")
+                ->setParameter('term', $term);
+        }
+
+        $total = (int) (clone $qb)
+            ->select('COUNT(u.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $items = $qb
+            ->orderBy('u.createdAt', 'DESC')
+            ->setFirstResult(($page - 1) * $perPage)
+            ->setMaxResults($perPage)
+            ->getQuery()
+            ->getResult();
+
+        $totalPages = max(1, (int) ceil($total / max($perPage, 1)));
+
+        return [
+            'items' => $items,
+            'total' => $total,
+            'page' => $page,
+            'perPage' => $perPage,
+            'totalPages' => $totalPages,
+        ];
+    }
+
+    public function countByRoleSlug(string $slug): int
+    {
+        $sql = 'SELECT COUNT(*) FROM `user` u WHERE JSON_CONTAINS(u.roles, :roleJson) = 1';
+
+        return (int) $this->getEntityManager()
+            ->getConnection()
+            ->fetchOne($sql, ['roleJson' => json_encode($slug)]);
     }
 }

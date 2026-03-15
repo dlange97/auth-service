@@ -1,0 +1,304 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Auth Service API",
+        "description": "Authentication, user management, roles, and auth-related health endpoints.",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/auth/register": {
+            "post": {
+                "operationId": "post_auth_register",
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "operationId": "post_auth_login",
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/auth/me": {
+            "get": {
+                "operationId": "get_auth_me",
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/auth/validate": {
+            "post": {
+                "operationId": "post_auth_validate",
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/auth/request-access": {
+            "post": {
+                "operationId": "post_auth_request_access",
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/auth/health": {
+            "get": {
+                "operationId": "get_auth_health",
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/auth/settings/jwt-session": {
+            "get": {
+                "operationId": "get_auth_jwt_session_index",
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "post_auth_jwt_session_create",
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/auth/settings/jwt-session/{id}": {
+            "get": {
+                "operationId": "get_auth_jwt_session_show",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "put_auth_jwt_session_update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "delete_auth_jwt_session_delete",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "patch_auth_jwt_session_update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/auth/roles": {
+            "get": {
+                "summary": "GET /auth/roles \u2013 list all role definitions (system + custom)",
+                "operationId": "get_auth_roles_list",
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "summary": "POST /auth/roles \u2013 create a new custom role\nBody: { \"name\": \"My Role\", \"slug\": \"ROLE_MY_ROLE\", \"permissions\": [\"dashboard.view\", ...] }",
+                "operationId": "post_auth_roles_create",
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/auth/roles/{id}": {
+            "put": {
+                "summary": "PUT /auth/roles/{id} \u2013 update a custom role (system roles: name only)",
+                "operationId": "put_auth_roles_update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "summary": "DELETE /auth/roles/{id} \u2013 delete a custom role (system roles cannot be deleted)",
+                "operationId": "delete_auth_roles_delete",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/auth/settings/access": {
+            "get": {
+                "operationId": "get_auth_manage_settings_access",
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/auth/users": {
+            "get": {
+                "operationId": "get_auth_manage_users_list",
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "post_auth_manage_users_create",
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/auth/users/{id}": {
+            "get": {
+                "operationId": "get_auth_manage_users_show",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/auth/users/{id}/role": {
+            "patch": {
+                "operationId": "patch_auth_manage_users_assign_role",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "security": [
+        {
+            "bearerAuth": []
+        }
+    ]
+}

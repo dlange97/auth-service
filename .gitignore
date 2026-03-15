@@ -35,3 +35,8 @@ compose.override.yaml
 # PHPUnit
 /phpunit.xml
 /.phpunit.cache/
+
+###> phpunit/phpunit ###
+/phpunit.xml
+/.phpunit.cache/
+###< phpunit/phpunit ###

@@ -52,12 +52,14 @@ class CreateTestUserCommand extends Command
         $role = $input->getOption('role');
         $upsert = (bool) $input->getOption('upsert');
 
-        if (!in_array($role, [
+        if (
+            !in_array($role, [
             PermissionService::ROLE_ADMIN,
             PermissionService::ROLE_MANAGER,
             PermissionService::ROLE_EDITOR,
             PermissionService::ROLE_USER,
-        ], true)) {
+            ], true)
+        ) {
             $io->error(sprintf('Unsupported role "%s".', (string) $role));
             return Command::INVALID;
         }
