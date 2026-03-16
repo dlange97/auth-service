@@ -1,12 +1,13 @@
-# Ignore migration files
-*.php
-
-# Ignore editor and system files
-.DS_Store
+# IDE / Editor
 .idea/
+.vscode/
+*.swp
+*.swo
+*.bak
+
+# OS
+.DS_Store
 Thumbs.db
 
-# Ignore build and cache
-build/
-dist/
-cache/
+# Logs
+*.log
