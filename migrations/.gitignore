@@ -1,3 +1,13 @@
-.DS_Store
+# IDE / Editor
 .idea/
+.vscode/
+*.swp
+*.swo
+*.bak
+
+# OS
+.DS_Store
 Thumbs.db
+
+# Logs
+*.log
