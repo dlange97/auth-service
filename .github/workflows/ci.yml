@@ -39,6 +39,3 @@ jobs:
         env:
           APP_ENV: test
         run: composer run test
-
-  cross-repo-smoke:
-    uses: dlange97/helper-scripts/.github/workflows/smoke.yml@develop
