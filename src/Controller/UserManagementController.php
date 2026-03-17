@@ -232,6 +232,14 @@ class UserManagementController extends AbstractController
             $user->setRoles([$role]);
         }
 
+        if (array_key_exists('language', $data)) {
+            $lang = strtolower(trim((string) $data['language']));
+            if (!in_array($lang, ['en', 'pl'], true)) {
+                return $this->json(['error' => 'Unsupported language. Use: en, pl.'], Response::HTTP_BAD_REQUEST);
+            }
+            $user->setLanguage($lang);
+        }
+
         $errors = $this->validator->validate($user);
         if (count($errors) > 0) {
             $messages = [];
@@ -278,14 +286,15 @@ class UserManagementController extends AbstractController
     private function serializeUser(User $user): array
     {
         return [
-            'id' => $user->getId(),
-            'email' => $user->getEmail(),
-            'firstName' => $user->getFirstName(),
-            'lastName' => $user->getLastName(),
-            'roles' => $user->getRoles(),
-            'status' => $user->getStatus(),
+            'id'          => $user->getId(),
+            'email'       => $user->getEmail(),
+            'firstName'   => $user->getFirstName(),
+            'lastName'    => $user->getLastName(),
+            'roles'       => $user->getRoles(),
+            'status'      => $user->getStatus(),
+            'language'    => $user->getLanguage(),
             'permissions' => $this->permissionService->getPermissionsForUser($user),
-            'createdAt' => $user->getCreatedAt()?->format('c'),
+            'createdAt'   => $user->getCreatedAt()?->format('c'),
         ];
     }
 }

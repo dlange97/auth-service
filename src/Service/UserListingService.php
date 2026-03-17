@@ -35,12 +35,13 @@ final class UserListingService
     private function serializeUserForList(User $user): array
     {
         return [
-            'id' => $user->getId(),
-            'email' => $user->getEmail(),
+            'id'        => $user->getId(),
+            'email'     => $user->getEmail(),
             'firstName' => $user->getFirstName(),
-            'lastName' => $user->getLastName(),
-            'roles' => $user->getRoles(),
-            'status' => $user->getStatus(),
+            'lastName'  => $user->getLastName(),
+            'roles'     => $user->getRoles(),
+            'status'    => $user->getStatus(),
+            'language'  => $user->getLanguage(),
             'createdAt' => $user->getCreatedAt()?->format('c'),
         ];
     }

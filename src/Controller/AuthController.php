@@ -152,6 +152,35 @@ class AuthController extends AbstractController
         ], Response::HTTP_ACCEPTED);
     }
 
+    #[Route('/me', name: 'me_update', methods: ['PATCH'])]
+    public function updateMe(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $data = json_decode($request->getContent(), true) ?? [];
+
+        if (array_key_exists('language', $data)) {
+            $lang = strtolower(trim((string) $data['language']));
+            if (!in_array($lang, ['en', 'pl'], true)) {
+                return $this->json(['error' => 'Unsupported language. Use: en, pl.'], Response::HTTP_BAD_REQUEST);
+            }
+            $user->setLanguage($lang);
+        }
+
+        if (array_key_exists('firstName', $data)) {
+            $user->setFirstName($data['firstName'] !== null ? trim((string) $data['firstName']) : null);
+        }
+
+        if (array_key_exists('lastName', $data)) {
+            $user->setLastName($data['lastName'] !== null ? trim((string) $data['lastName']) : null);
+        }
+
+        $this->userRepository->save($user, true);
+
+        return $this->json(['user' => $this->serializeUser($user)]);
+    }
+
     /**
      * @return array{
      *   id: string|null,
@@ -160,6 +189,7 @@ class AuthController extends AbstractController
      *   lastName: string|null,
      *   roles: list<string>,
      *   status: string,
+     *   language: string,
      *   permissions: list<string>,
      *   createdAt: string|null
      * }
@@ -167,14 +197,15 @@ class AuthController extends AbstractController
     private function serializeUser(User $user): array
     {
         return [
-            'id'        => $user->getId(),
-            'email'     => $user->getEmail(),
-            'firstName' => $user->getFirstName(),
-            'lastName'  => $user->getLastName(),
-            'roles'     => $user->getRoles(),
-            'status'    => $user->getStatus(),
+            'id'          => $user->getId(),
+            'email'       => $user->getEmail(),
+            'firstName'   => $user->getFirstName(),
+            'lastName'    => $user->getLastName(),
+            'roles'       => $user->getRoles(),
+            'status'      => $user->getStatus(),
+            'language'    => $user->getLanguage(),
             'permissions' => $this->permissionService->getPermissionsForUser($user),
-            'createdAt' => $user->getCreatedAt()?->format('c'),
+            'createdAt'   => $user->getCreatedAt()?->format('c'),
         ];
     }
 }
