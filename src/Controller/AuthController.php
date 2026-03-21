@@ -176,6 +176,15 @@ class AuthController extends AbstractController
             $user->setLastName($data['lastName'] !== null ? trim((string) $data['lastName']) : null);
         }
 
+        if (array_key_exists('dashboardLayout', $data)) {
+            $normalizedLayout = $this->normalizeDashboardLayout($data['dashboardLayout']);
+            if ($normalizedLayout === false) {
+                return $this->json(['error' => 'Invalid dashboardLayout payload.'], Response::HTTP_BAD_REQUEST);
+            }
+
+            $user->setDashboardLayout($normalizedLayout);
+        }
+
         $this->userRepository->save($user, true);
 
         return $this->json(['user' => $this->serializeUser($user)]);
@@ -190,6 +199,7 @@ class AuthController extends AbstractController
      *   roles: list<string>,
      *   status: string,
      *   language: string,
+    *   dashboardLayout: array<string,mixed>|null,
      *   permissions: list<string>,
      *   createdAt: string|null
      * }
@@ -204,8 +214,94 @@ class AuthController extends AbstractController
             'roles'       => $user->getRoles(),
             'status'      => $user->getStatus(),
             'language'    => $user->getLanguage(),
+            'dashboardLayout' => $user->getDashboardLayout(),
             'permissions' => $this->permissionService->getPermissionsForUser($user),
             'createdAt'   => $user->getCreatedAt()?->format('c'),
+        ];
+    }
+
+    /**
+     * @param mixed $payload
+     * @return array<string, mixed>|null|false
+     */
+    private function normalizeDashboardLayout(mixed $payload): array|null|false
+    {
+        if ($payload === null) {
+            return null;
+        }
+
+        if (!is_array($payload)) {
+            return false;
+        }
+
+        $order = $payload['order'] ?? [];
+        $scales = $payload['scales'] ?? [];
+
+        if (!is_array($order) || !is_array($scales)) {
+            return false;
+        }
+
+        $normalizedOrder = [];
+        foreach ($order as $id) {
+            if (!is_string($id)) {
+                return false;
+            }
+
+            $trimmed = trim($id);
+            if ($trimmed === '') {
+                continue;
+            }
+
+            $normalizedOrder[] = $trimmed;
+        }
+
+        /** @var array<string, array{x: float, y: float}> $normalizedScales */
+        $normalizedScales = [];
+        foreach ($scales as $tileId => $scale) {
+            if (!is_string($tileId) || trim($tileId) === '') {
+                return false;
+            }
+
+            if (is_numeric($scale)) {
+                $value = (float) $scale;
+                if ($value < 0.5 || $value > 1.5) {
+                    return false;
+                }
+
+                $normalizedScales[trim($tileId)] = [
+                    'x' => round($value, 3),
+                    'y' => round($value, 3),
+                ];
+
+                continue;
+            }
+
+            if (!is_array($scale)) {
+                return false;
+            }
+
+            $x = $scale['x'] ?? null;
+            $y = $scale['y'] ?? null;
+
+            if (!is_numeric($x) || !is_numeric($y)) {
+                return false;
+            }
+
+            $xValue = (float) $x;
+            $yValue = (float) $y;
+            if ($xValue < 0.5 || $xValue > 1.5 || $yValue < 0.5 || $yValue > 1.5) {
+                return false;
+            }
+
+            $normalizedScales[trim($tileId)] = [
+                'x' => round($xValue, 3),
+                'y' => round($yValue, 3),
+            ];
+        }
+
+        return [
+            'order' => array_values(array_unique($normalizedOrder)),
+            'scales' => $normalizedScales,
         ];
     }
 }

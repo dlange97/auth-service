@@ -293,6 +293,7 @@ class UserManagementController extends AbstractController
             'roles'       => $user->getRoles(),
             'status'      => $user->getStatus(),
             'language'    => $user->getLanguage(),
+            'dashboardLayout' => $user->getDashboardLayout(),
             'permissions' => $this->permissionService->getPermissionsForUser($user),
             'createdAt'   => $user->getCreatedAt()?->format('c'),
         ];
