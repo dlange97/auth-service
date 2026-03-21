@@ -49,6 +49,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 20, options: ['default' => self::STATUS_ACTIVE])]
     private string $status = self::STATUS_ACTIVE;
 
+    #[ORM\Column(length: 5, options: ['default' => 'en'])]
+    private string $language = 'en';
+
+    /** @var array<string, mixed>|null */
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $dashboardLayout = null;
+
     public function getId(): ?string
     {
         return $this->id;
@@ -138,6 +145,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function isActive(): bool
     {
         return $this->status === self::STATUS_ACTIVE;
+    }
+
+    public function getLanguage(): string
+    {
+        return $this->language;
+    }
+
+    public function setLanguage(string $language): static
+    {
+        $this->language = $language;
+        return $this;
+    }
+
+    /** @return array<string, mixed>|null */
+    public function getDashboardLayout(): ?array
+    {
+        return $this->dashboardLayout;
+    }
+
+    /** @param array<string, mixed>|null $dashboardLayout */
+    public function setDashboardLayout(?array $dashboardLayout): static
+    {
+        $this->dashboardLayout = $dashboardLayout;
+        return $this;
     }
 
     public function eraseCredentials(): void

@@ -8,6 +8,7 @@
 /config/secrets/prod/prod.decrypt.private.php
 
 # Environment files
+/.env.dev
 /.env.local
 /.env.local.php
 /.env.*.local

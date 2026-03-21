@@ -1,12 +1,36 @@
 #!/usr/bin/env python3
 import base64
 import json
+import os
 import urllib.error
 import urllib.request
+from pathlib import Path
 
-BASE = "http://localhost:8081"
-ADMIN_EMAIL = "admin.test@micro.com"
-ADMIN_PASSWORD = "Admin123!"
+
+def load_env_file(path):
+    if not path.exists():
+        return
+
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        os.environ.setdefault(key, value)
+
+
+SERVICE_DIR = Path(__file__).resolve().parents[1]
+load_env_file(SERVICE_DIR / ".env")
+load_env_file(SERVICE_DIR / ".env.dev")
+
+BASE = os.getenv("BASE_URL", "http://localhost:8081")
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
+if not ADMIN_EMAIL or not ADMIN_PASSWORD:
+    raise SystemExit("Missing ADMIN_EMAIL or ADMIN_PASSWORD in auth-service/.env.dev")
 
 
 def call(method, path, payload=None, token=None):
