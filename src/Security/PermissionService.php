@@ -14,7 +14,6 @@ class PermissionService
     ) {
     }
 
-
     public const ROLE_ADMIN = 'ROLE_ADMIN';
     public const ROLE_MANAGER = 'ROLE_MANAGER';
     public const ROLE_EDITOR = 'ROLE_EDITOR';
@@ -139,7 +138,7 @@ class PermissionService
                 $permissions = [...$permissions, ...self::ROLE_PERMISSIONS[$role]];
                 continue;
             }
-            // Check dynamic custom roles from DB
+
             if ($this->roleRepo !== null) {
                 $def = $this->roleRepo->findBySlug($role);
                 if ($def !== null) {
