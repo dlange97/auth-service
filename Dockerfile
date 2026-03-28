@@ -14,7 +14,6 @@ COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 WORKDIR /app
 
 COPY composer.json composer.lock* ./
-RUN composer install --no-interaction --no-scripts --prefer-dist 2>/dev/null || true
 
 COPY . .
 
