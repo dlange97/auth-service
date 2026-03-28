@@ -74,6 +74,43 @@ class UserManagementController extends AbstractController
         return $this->json($this->userListingService->listUsers($search, $page, $perPage));
     }
 
+    #[Route('/users/options', name: 'users_options', methods: ['GET'])]
+    public function listUserOptions(Request $request): JsonResponse
+    {
+        $search = trim((string) $request->query->get('search', ''));
+        $page = max(1, (int) $request->query->get('page', 1));
+        $perPage = min(100, max(1, (int) $request->query->get('perPage', 25)));
+
+        $payload = $this->userListingService->listUsers($search, $page, $perPage);
+        $items = array_values(array_filter(
+            $payload['items'],
+            static fn(array $user): bool => ($user['status'] ?? null) === User::STATUS_ACTIVE,
+        ));
+
+        return $this->json([
+            'items' => array_map(
+                static fn(array $user): array => [
+                    'id' => $user['id'],
+                    'email' => $user['email'],
+                    'firstName' => $user['firstName'],
+                    'lastName' => $user['lastName'],
+                ],
+                $items,
+            ),
+            'pagination' => $payload['pagination'],
+        ]);
+    }
+
+    #[Route('/users/exists/{id}', name: 'users_exists', methods: ['GET'])]
+    public function userExists(string $id): JsonResponse
+    {
+        $user = $this->userRepository->findById($id);
+
+        return $this->json([
+            'exists' => $user !== null && $user->getStatus() === User::STATUS_ACTIVE,
+        ]);
+    }
+
     #[Route('/users/{id}', name: 'users_show', methods: ['GET'])]
     public function showUser(string $id): JsonResponse
     {

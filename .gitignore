@@ -1,7 +1,6 @@
 # Dependencies & build output
 /vendor/
 /var/
-/composer.lock
 /public/bundles/
 
 # Symfony secrets
@@ -32,10 +31,6 @@ Thumbs.db
 
 # Docker local overrides
 compose.override.yaml
-
-# PHPUnit
-/phpunit.xml
-/.phpunit.cache/
 
 ###> phpunit/phpunit ###
 /phpunit.xml
