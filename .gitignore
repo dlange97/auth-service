@@ -8,6 +8,7 @@
 
 # Environment files
 /.env.dev
+/.env.test
 /.env.local
 /.env.local.php
 /.env.*.local
@@ -36,3 +37,6 @@ compose.override.yaml
 /phpunit.xml
 /.phpunit.cache/
 ###< phpunit/phpunit ###
+
+# Test output
+/test-output/

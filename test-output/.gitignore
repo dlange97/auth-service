@@ -1,3 +1,0 @@
-# Ignore all generated test output; only track this file
-*
-!.gitignore
