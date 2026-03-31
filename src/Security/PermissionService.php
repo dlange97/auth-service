@@ -153,7 +153,7 @@ class PermissionService
     /** @return list<string> */
     public function getPermissionsForUser(User $user): array
     {
-        return $this->getPermissionsForRoles($user->getRoles());
+        return $this->getPermissionsForRoles($user->getStoredRoles());
     }
 
     public function userHasPermission(User $user, string $permission): bool
