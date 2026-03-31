@@ -93,17 +93,16 @@ final class AccessRequestServiceTest extends TestCase
     {
         $this->userRepository->method('findAllOrdered')->willReturn([]);
 
-        $this->notificationGateway->expects($this->once())
-            ->method('sendRequestAccess')
-            ->with(
-                $this->callback(fn(array $data) =>
-                    $data['email'] === 'test@example.com'
+            $payloadMatcher = $this->callback(function (array $data): bool {
+                return $data['email'] === 'test@example.com'
                     && $data['firstName'] === 'John'
                     && $data['lastName'] === 'Doe'
-                    && $data['message'] === 'Hello'
-                ),
-                $this->anything(),
-            )
+                    && $data['message'] === 'Hello';
+            });
+
+        $this->notificationGateway->expects($this->once())
+            ->method('sendRequestAccess')
+                ->with($payloadMatcher, $this->anything())
             ->willReturn(true);
 
         $this->service->sendRequest([
