@@ -28,6 +28,8 @@ final readonly class InstanceRequestListener extends SharedInstanceRequestListen
             '/auth/checkout',
             '/auth/register',
             '/auth/docs',
+            '/auth/instances',
+            '/auth/my-instances',
         ]);
     }
 }

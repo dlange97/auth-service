@@ -21,6 +21,10 @@ security:
       pattern: ^/auth/checkout/
       security: false
 
+    instance_resolve:
+      pattern: ^/auth/instances/resolve$
+      security: false
+
     login:
       pattern: ^/auth/login$
       stateless: true
@@ -46,4 +50,5 @@ security:
     - { path: ^/auth/login, roles: PUBLIC_ACCESS }
     - { path: ^/auth/request-access, roles: PUBLIC_ACCESS }
     - { path: ^/auth/checkout, roles: PUBLIC_ACCESS }
+    - { path: ^/auth/instances/resolve, roles: PUBLIC_ACCESS }
     - { path: ^/auth/, roles: ROLE_USER }

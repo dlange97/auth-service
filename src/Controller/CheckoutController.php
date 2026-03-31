@@ -118,6 +118,7 @@ class CheckoutController extends AbstractController
         $user->setRoles([PermissionService::ROLE_ADMIN]);
         $user->setPassword($this->passwordHasher->hashPassword($user, $adminPassword));
         $user->setInstanceId($instance->getId());
+        $user->addInstance($instance);
 
         $userErrors = $this->validator->validate($user);
         if (count($userErrors) > 0) {
