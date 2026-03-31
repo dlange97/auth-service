@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use App\Traits\HasInstanceId;
 use App\Traits\TimestampableTrait;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -19,6 +20,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[UniqueEntity(fields: ['email'], message: 'An account with this email already exists.')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    use HasInstanceId;
     use TimestampableTrait;
 
     public const STATUS_ACTIVE = 'active';

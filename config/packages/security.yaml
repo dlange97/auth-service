@@ -17,6 +17,10 @@ security:
       pattern: ^/auth/health$
       security: false
 
+    checkout:
+      pattern: ^/auth/checkout/
+      security: false
+
     login:
       pattern: ^/auth/login$
       stateless: true
@@ -41,4 +45,5 @@ security:
     - { path: ^/auth/docs(?:\.json)?$, roles: PUBLIC_ACCESS }
     - { path: ^/auth/login, roles: PUBLIC_ACCESS }
     - { path: ^/auth/request-access, roles: PUBLIC_ACCESS }
+    - { path: ^/auth/checkout, roles: PUBLIC_ACCESS }
     - { path: ^/auth/, roles: ROLE_USER }

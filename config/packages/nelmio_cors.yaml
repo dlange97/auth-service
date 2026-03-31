@@ -3,11 +3,11 @@ nelmio_cors:
     origin_regex: true
     allow_origin: ["%env(CORS_ALLOW_ORIGIN)%"]
     allow_methods: ["GET", "OPTIONS", "POST", "PUT", "PATCH", "DELETE"]
-    allow_headers: ["Content-Type", "Authorization", "X-Auth-Provider"]
+    allow_headers: ["Content-Type", "Authorization", "X-Auth-Provider", "X-Instance-Id"]
     expose_headers: ["Link"]
     max_age: 3600
   paths:
     "^/auth/":
       allow_origin: ["*"]
-      allow_headers: ["Content-Type", "Authorization", "X-Auth-Provider"]
+      allow_headers: ["Content-Type", "Authorization", "X-Auth-Provider", "X-Instance-Id"]
       allow_methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]

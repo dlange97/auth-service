@@ -29,6 +29,7 @@ class JwtCreatedListener
         $payload['id'] = $user->getId();
         $payload['firstName'] = $user->getFirstName();
         $payload['lastName'] = $user->getLastName();
+        $payload['instanceId'] = $user->getInstanceId();
         $payload['permissions'] = $this->permissionService->getPermissionsForUser($user);
         $payload['iat'] = $issuedAt;
         $payload['exp'] = $issuedAt + $ttlSeconds;
