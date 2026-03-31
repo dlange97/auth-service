@@ -14,6 +14,7 @@ use MyDashboard\Shared\EventListener\InstanceRequestListener as SharedInstanceRe
  *   /auth/login           – public login endpoint
  *   /auth/request-access  – public access request form
  *   /auth/checkout        – public checkout form (creates new instance)
+ *   /auth/register        – public registration endpoint (controller enforces 401)
  *   /auth/docs            – API docs (dev)
  */
 final readonly class InstanceRequestListener extends SharedInstanceRequestListener
@@ -25,6 +26,7 @@ final readonly class InstanceRequestListener extends SharedInstanceRequestListen
             '/auth/login',
             '/auth/request-access',
             '/auth/checkout',
+            '/auth/register',
             '/auth/docs',
         ]);
     }
