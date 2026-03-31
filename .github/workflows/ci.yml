@@ -31,7 +31,7 @@ jobs:
             || git clone --depth 1 https://github.com/dlange97/shared-bundle.git ../shared-bundle
 
       - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist
+        run: composer install --no-interaction --prefer-dist --no-scripts
 
       - name: Run PHPCS
         run: composer run lint:phpcs
