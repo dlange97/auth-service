@@ -7,6 +7,8 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use App\Traits\HasInstanceId;
 use App\Traits\TimestampableTrait;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -57,6 +59,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /** @var array<string, mixed>|null */
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $dashboardLayout = null;
+
+    /** @var Collection<int, Instance> */
+    #[ORM\ManyToMany(targetEntity: Instance::class)]
+    #[ORM\JoinTable(name: 'user_instance')]
+    private Collection $instances;
+
+    public function __construct()
+    {
+        $this->instances = new ArrayCollection();
+    }
 
     public function getId(): ?string
     {
@@ -184,5 +196,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function eraseCredentials(): void
     {
+    }
+
+    /** @return Collection<int, Instance> */
+    public function getInstances(): Collection
+    {
+        return $this->instances;
+    }
+
+    public function addInstance(Instance $instance): static
+    {
+        if (!$this->instances->contains($instance)) {
+            $this->instances->add($instance);
+        }
+
+        return $this;
+    }
+
+    public function removeInstance(Instance $instance): static
+    {
+        $this->instances->removeElement($instance);
+
+        return $this;
     }
 }

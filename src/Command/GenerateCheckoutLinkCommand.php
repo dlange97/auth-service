@@ -32,7 +32,7 @@ class GenerateCheckoutLinkCommand extends Command
             null,
             InputOption::VALUE_OPTIONAL,
             'Base URL of the frontend application',
-            'http://app.mydashboard.local'
+            $_ENV['BASE_URL'] ?? 'http://app.mydashboard.local'
         );
     }
 
