@@ -10,27 +10,26 @@ use App\Repository\UserRepository;
 use App\Security\PermissionService;
 use App\Service\PermissionGuard;
 use App\Service\UserListingService;
-use Doctrine\ORM\EntityManagerInterface;
-use Ramsey\Uuid\Uuid;
+use App\Service\UserManagementService;
+use App\Service\UserRegistrationService;
+use App\Service\UserSerializer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/auth', name: 'auth_manage_')]
 class UserManagementController extends AbstractController
 {
     public function __construct(
-        private readonly UserRepository $userRepository,
-        private readonly UserPasswordHasherInterface $passwordHasher,
-        private readonly ValidatorInterface $validator,
-        private readonly PermissionService $permissionService,
         private readonly PermissionGuard $permissionGuard,
         private readonly UserListingService $userListingService,
-        private readonly EntityManagerInterface $em,
+        private readonly UserRegistrationService $registrationService,
+        private readonly UserManagementService $managementService,
+        private readonly UserSerializer $userSerializer,
+        private readonly PermissionService $permissionService,
+        private readonly UserRepository $userRepository,
         private readonly RoleDefinitionRepository $roleRepo,
     ) {
     }
@@ -67,8 +66,8 @@ class UserManagementController extends AbstractController
         $currentUser = $this->getUser();
         $this->permissionGuard->ensure($currentUser, 'users.view');
 
-        $search = trim((string) $request->query->get('search', ''));
-        $page = max(1, (int) $request->query->get('page', 1));
+        $search  = trim((string) $request->query->get('search', ''));
+        $page    = max(1, (int) $request->query->get('page', 1));
         $perPage = min(100, max(1, (int) $request->query->get('perPage', 10)));
 
         return $this->json($this->userListingService->listUsers($search, $page, $perPage));
@@ -77,8 +76,8 @@ class UserManagementController extends AbstractController
     #[Route('/users/options', name: 'users_options', methods: ['GET'])]
     public function listUserOptions(Request $request): JsonResponse
     {
-        $search = trim((string) $request->query->get('search', ''));
-        $page = max(1, (int) $request->query->get('page', 1));
+        $search  = trim((string) $request->query->get('search', ''));
+        $page    = max(1, (int) $request->query->get('page', 1));
         $perPage = min(100, max(1, (int) $request->query->get('perPage', 25)));
 
         $payload = $this->userListingService->listUsers($search, $page, $perPage);
@@ -90,10 +89,10 @@ class UserManagementController extends AbstractController
         return $this->json([
             'items' => array_map(
                 static fn(array $user): array => [
-                    'id' => $user['id'],
-                    'email' => $user['email'],
+                    'id'        => $user['id'],
+                    'email'     => $user['email'],
                     'firstName' => $user['firstName'],
-                    'lastName' => $user['lastName'],
+                    'lastName'  => $user['lastName'],
                 ],
                 $items,
             ),
@@ -116,16 +115,11 @@ class UserManagementController extends AbstractController
     {
         /** @var User $currentUser */
         $currentUser = $this->getUser();
-        if (!$this->permissionService->userHasPermission($currentUser, 'users.view')) {
-            return $this->json(['error' => 'Forbidden. Missing permission: users.view'], Response::HTTP_FORBIDDEN);
-        }
+        $this->permissionGuard->ensure($currentUser, 'users.view');
 
-        $user = $this->userRepository->findById($id);
-        if (!$user) {
-            return $this->json(['error' => 'User not found.'], Response::HTTP_NOT_FOUND);
-        }
+        $user = $this->managementService->findOrFail($id);
 
-        return $this->json($this->serializeUser($user));
+        return $this->json($this->userSerializer->serialize($user));
     }
 
     #[Route('/users', name: 'users_create', methods: ['POST'])]
@@ -133,57 +127,14 @@ class UserManagementController extends AbstractController
     {
         /** @var User $currentUser */
         $currentUser = $this->getUser();
-        if (!$this->permissionService->userHasPermission($currentUser, 'users.create')) {
-            return $this->json(['error' => 'Forbidden. Missing permission: users.create'], Response::HTTP_FORBIDDEN);
-        }
+        $this->permissionGuard->ensure($currentUser, 'users.create');
 
         $data = json_decode($request->getContent(), true) ?? [];
-        $email = trim($data['email'] ?? '');
-        $password = $data['password'] ?? '';
-        $firstName = $data['firstName'] ?? null;
-        $lastName = $data['lastName'] ?? null;
-        $role = $data['role'] ?? PermissionService::ROLE_USER;
-
-        if ($email === '' || $password === '') {
-            return $this->json(['error' => 'Email and password are required.'], Response::HTTP_BAD_REQUEST);
-        }
-
-        if (strlen($password) < 8) {
-            return $this->json(['error' => 'Password must be at least 8 characters.'], Response::HTTP_BAD_REQUEST);
-        }
-
-        if (!$this->permissionService->isRoleSupported($role)) {
-            return $this->json(['error' => 'Unsupported role.'], Response::HTTP_BAD_REQUEST);
-        }
-
-        if ($this->userRepository->findByEmail($email)) {
-            return $this->json(['error' => 'An account with this email already exists.'], Response::HTTP_CONFLICT);
-        }
-
-        $user = new User();
-        $user->setId(Uuid::uuid4()->toString());
-        $user->setEmail($email);
-        $user->setFirstName($firstName);
-        $user->setLastName($lastName);
-        $user->setRoles([$role]);
-        $user->setPassword($this->passwordHasher->hashPassword($user, $password));
-
-        $errors = $this->validator->validate($user);
-        if (count($errors) > 0) {
-            $messages = [];
-            foreach ($errors as $error) {
-                $messages[] = $error->getPropertyPath() . ': ' . $error->getMessage();
-            }
-
-            return $this->json(['errors' => $messages], Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
-        $this->em->persist($user);
-        $this->em->flush();
+        $user = $this->registrationService->createUser($data);
 
         return $this->json([
             'message' => 'User created successfully.',
-            'user' => $this->serializeUser($user),
+            'user'    => $this->userSerializer->serialize($user),
         ], Response::HTTP_CREATED);
     }
 
@@ -192,32 +143,25 @@ class UserManagementController extends AbstractController
     {
         /** @var User $currentUser */
         $currentUser = $this->getUser();
-        if (!$this->permissionService->userHasPermission($currentUser, 'users.assign_roles')) {
-            return $this->json(['error' => 'Forbidden. Missing permission: users.assign_roles'], Response::HTTP_FORBIDDEN);
-        }
+        $this->permissionGuard->ensure($currentUser, 'users.assign_roles');
 
-        $user = $this->userRepository->findById($id);
-        if (!$user) {
-            return $this->json(['error' => 'User not found.'], Response::HTTP_NOT_FOUND);
-        }
-
+        $user = $this->managementService->findOrFail($id);
         $data = json_decode($request->getContent(), true) ?? [];
         $role = $data['role'] ?? null;
 
-        if (!is_string($role) || !$this->permissionService->isRoleSupported($role)) {
+        if (!is_string($role)) {
             return $this->json(['error' => 'Unsupported role.'], Response::HTTP_BAD_REQUEST);
         }
 
-        $user->setRoles([$role]);
-        $this->em->flush();
+        $this->managementService->assignRole($user, $role);
 
         return $this->json([
             'message' => 'Role assigned successfully.',
-            'user' => [
-                'id' => $user->getId(),
-                'email' => $user->getEmail(),
-                'roles' => $user->getRoles(),
-                'status' => $user->getStatus(),
+            'user'    => [
+                'id'          => $user->getId(),
+                'email'       => $user->getEmail(),
+                'roles'       => $user->getRoles(),
+                'status'      => $user->getStatus(),
                 'permissions' => $this->permissionService->getPermissionsForUser($user),
             ],
         ]);
@@ -228,70 +172,16 @@ class UserManagementController extends AbstractController
     {
         /** @var User $currentUser */
         $currentUser = $this->getUser();
-        if (!$this->permissionService->userHasPermission($currentUser, 'users.assign_roles')) {
-            return $this->json(['error' => 'Forbidden. Missing permission: users.assign_roles'], Response::HTTP_FORBIDDEN);
-        }
+        $this->permissionGuard->ensure($currentUser, 'users.assign_roles');
 
-        $user = $this->userRepository->findById($id);
-        if (!$user) {
-            return $this->json(['error' => 'User not found.'], Response::HTTP_NOT_FOUND);
-        }
-
+        $user = $this->managementService->findOrFail($id);
         $data = json_decode($request->getContent(), true) ?? [];
 
-        if (array_key_exists('email', $data)) {
-            $email = trim((string) $data['email']);
-            if ($email === '') {
-                return $this->json(['error' => 'Email cannot be empty.'], Response::HTTP_BAD_REQUEST);
-            }
-
-            $existing = $this->userRepository->findByEmail($email);
-            if ($existing && $existing->getId() !== $user->getId()) {
-                return $this->json(['error' => 'An account with this email already exists.'], Response::HTTP_CONFLICT);
-            }
-
-            $user->setEmail($email);
-        }
-
-        if (array_key_exists('firstName', $data)) {
-            $user->setFirstName($data['firstName'] !== null ? trim((string) $data['firstName']) : null);
-        }
-
-        if (array_key_exists('lastName', $data)) {
-            $user->setLastName($data['lastName'] !== null ? trim((string) $data['lastName']) : null);
-        }
-
-        if (array_key_exists('role', $data)) {
-            $role = (string) $data['role'];
-            if (!$this->permissionService->isRoleSupported($role)) {
-                return $this->json(['error' => 'Unsupported role.'], Response::HTTP_BAD_REQUEST);
-            }
-            $user->setRoles([$role]);
-        }
-
-        if (array_key_exists('language', $data)) {
-            $lang = strtolower(trim((string) $data['language']));
-            if (!in_array($lang, ['en', 'pl'], true)) {
-                return $this->json(['error' => 'Unsupported language. Use: en, pl.'], Response::HTTP_BAD_REQUEST);
-            }
-            $user->setLanguage($lang);
-        }
-
-        $errors = $this->validator->validate($user);
-        if (count($errors) > 0) {
-            $messages = [];
-            foreach ($errors as $error) {
-                $messages[] = $error->getPropertyPath() . ': ' . $error->getMessage();
-            }
-
-            return $this->json(['errors' => $messages], Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
-        $this->em->flush();
+        $this->managementService->updateUser($user, $data);
 
         return $this->json([
             'message' => 'User updated successfully.',
-            'user' => $this->serializeUser($user),
+            'user'    => $this->userSerializer->serialize($user),
         ]);
     }
 
@@ -300,39 +190,11 @@ class UserManagementController extends AbstractController
     {
         /** @var User $currentUser */
         $currentUser = $this->getUser();
-        if (!$this->permissionService->userHasPermission($currentUser, 'users.assign_roles')) {
-            return $this->json(['error' => 'Forbidden. Missing permission: users.assign_roles'], Response::HTTP_FORBIDDEN);
-        }
+        $this->permissionGuard->ensure($currentUser, 'users.assign_roles');
 
-        $user = $this->userRepository->findById($id);
-        if (!$user) {
-            return $this->json(['error' => 'User not found.'], Response::HTTP_NOT_FOUND);
-        }
-
-        if ($currentUser->getId() === $user->getId()) {
-            return $this->json(['error' => 'You cannot deactivate your own account.'], Response::HTTP_CONFLICT);
-        }
-
-        $user->setStatus(User::STATUS_INACTIVE);
-        $this->em->flush();
+        $user = $this->managementService->findOrFail($id);
+        $this->managementService->softDelete($user, $currentUser);
 
         return $this->json(null, Response::HTTP_NO_CONTENT);
-    }
-
-    /** @return array<string, mixed> */
-    private function serializeUser(User $user): array
-    {
-        return [
-            'id'          => $user->getId(),
-            'email'       => $user->getEmail(),
-            'firstName'   => $user->getFirstName(),
-            'lastName'    => $user->getLastName(),
-            'roles'       => $user->getRoles(),
-            'status'      => $user->getStatus(),
-            'language'    => $user->getLanguage(),
-            'dashboardLayout' => $user->getDashboardLayout(),
-            'permissions' => $this->permissionService->getPermissionsForUser($user),
-            'createdAt'   => $user->getCreatedAt()?->format('c'),
-        ];
     }
 }

@@ -97,4 +97,26 @@ class UserRepository extends ServiceEntityRepository
             ->getConnection()
             ->fetchOne($sql, ['roleJson' => json_encode($slug)]);
     }
+
+    /** @return list<User> */
+    public function findByRoleSlug(string $slug): array
+    {
+        $ids = $this->getEntityManager()
+            ->getConnection()
+            ->fetchFirstColumn(
+                'SELECT id FROM `user` WHERE JSON_CONTAINS(roles, :roleJson) = 1',
+                ['roleJson' => json_encode($slug)],
+            );
+
+        if ($ids === []) {
+            return [];
+        }
+
+        /** @var list<User> */
+        return $this->createQueryBuilder('u')
+            ->where('u.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->getResult();
+    }
 }
