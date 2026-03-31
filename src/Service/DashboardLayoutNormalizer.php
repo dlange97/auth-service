@@ -43,7 +43,10 @@ final class DashboardLayoutNormalizer
         ];
     }
 
-    /** @return list<string>|false */
+    /**
+     * @param array<int|string, mixed> $order
+     * @return list<string>|false
+     */
     private function normalizeOrder(array $order): array|false
     {
         $result = [];
@@ -63,7 +66,10 @@ final class DashboardLayoutNormalizer
         return $result;
     }
 
-    /** @return array<string, array{x: float, y: float}>|false */
+    /**
+     * @param array<int|string, mixed> $scales
+     * @return array<string, array{x: float, y: float}>|false
+     */
     private function normalizeScales(array $scales): array|false
     {
         $result = [];
