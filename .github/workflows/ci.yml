@@ -24,7 +24,11 @@ jobs:
           tools: composer:v2
 
       - name: Clone shared-bundle dependency
-        run: git clone --depth 1 https://github.com/dlange97/shared-bundle.git ../shared-bundle
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          git clone --depth 1 --branch "$BRANCH" https://github.com/dlange97/shared-bundle.git ../shared-bundle 2>/dev/null \
+            || git clone --depth 1 --branch develop https://github.com/dlange97/shared-bundle.git ../shared-bundle 2>/dev/null \
+            || git clone --depth 1 https://github.com/dlange97/shared-bundle.git ../shared-bundle
 
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
