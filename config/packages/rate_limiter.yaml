@@ -1,0 +1,32 @@
+framework:
+  rate_limiter:
+    # General API limiter: 100 requests per minute per IP.
+    api:
+      policy: sliding_window
+      limit: 100
+      interval: "1 minute"
+
+    # Sensitive limiter for login / register: 10 per minute per IP.
+    api_sensitive:
+      policy: sliding_window
+      limit: 10
+      interval: "1 minute"
+
+    # Brute-force protection for login endpoint
+    # Max 5 attempts per 60 seconds per IP address
+    login:
+      policy: sliding_window
+      limit: 5
+      interval: "60 seconds"
+
+    # Registration / request-access — 10 per hour per IP
+    register:
+      policy: sliding_window
+      limit: 10
+      interval: "1 hour"
+
+    # Password-reset requests — 3 per 15 minutes per IP
+    password_reset:
+      policy: sliding_window
+      limit: 3
+      interval: "15 minutes"

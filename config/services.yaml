@@ -33,3 +33,11 @@ services:
   App\EventListener\InstanceDoctrineListener:
     tags:
       - { name: doctrine.event_listener, event: prePersist }
+
+  # ── Rate-limit subscriber (DDoS / brute-force protection) ─
+  App\EventSubscriber\RateLimitSubscriber:
+    arguments:
+      $apiLimiter: "@limiter.api"
+      $apiSensitiveLimiter: "@limiter.api_sensitive"
+    tags:
+      - { name: kernel.event_subscriber }

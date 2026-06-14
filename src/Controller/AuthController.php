@@ -15,6 +15,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/auth', name: 'auth_')]
@@ -96,5 +97,20 @@ class AuthController extends AbstractController
         $this->profileService->updateProfile($user, $data);
 
         return $this->json(['user' => $this->userSerializer->serialize($user)]);
+    }
+
+    #[Route('/logout', name: 'logout', methods: ['POST'])]
+    public function logout(): Response
+    {
+        $response = new Response(null, Response::HTTP_NO_CONTENT);
+        $response->headers->setCookie(
+            Cookie::create('jwt_token')
+                ->withValue('')
+                ->withExpires(new \DateTimeImmutable('1970-01-01'))
+                ->withPath('/')
+                ->withHttpOnly(true)
+                ->withSameSite(Cookie::SAMESITE_LAX)
+        );
+        return $response;
     }
 }

@@ -25,8 +25,6 @@ final class UserRegistrationService
     }
 
     /**
-     * Register a new user (self-registration; default ROLE_USER).
-     *
      * @param array<string, mixed> $data
      * @throws BadRequestHttpException|ConflictHttpException|UnprocessableEntityHttpException
      */
@@ -48,8 +46,6 @@ final class UserRegistrationService
     }
 
     /**
-     * Create a user with an explicit role (admin-initiated creation).
-     *
      * @param array<string, mixed> $data
      * @throws BadRequestHttpException|ConflictHttpException|UnprocessableEntityHttpException
      */
