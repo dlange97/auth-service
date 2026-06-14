@@ -6,17 +6,6 @@ namespace App\EventListener;
 
 use MyDashboard\Shared\EventListener\InstanceRequestListener as SharedInstanceRequestListener;
 
-/**
- * auth-service instance listener.
- *
- * Bypass paths:
- *   /auth/health          – health check (no tenant)
- *   /auth/login           – public login endpoint
- *   /auth/request-access  – public access request form
- *   /auth/checkout        – public checkout form (creates new instance)
- *   /auth/register        – public registration endpoint (controller enforces 401)
- *   /auth/docs            – API docs (dev)
- */
 final readonly class InstanceRequestListener extends SharedInstanceRequestListener
 {
     public function __construct()

@@ -1,0 +1,38 @@
+monolog:
+    channels:
+        - security
+
+    handlers:
+        security:
+            type: stream
+            path: php://stderr
+            level: warning
+            channels: [security]
+
+        main:
+            type: fingers_crossed
+            action_level: error
+            handler: nested
+            excluded_http_codes: [404, 405]
+            buffer_size: 50
+
+        nested:
+            type: stream
+            path: php://stderr
+            level: debug
+
+when@prod:
+    monolog:
+        handlers:
+            main:
+                type: fingers_crossed
+                action_level: error
+                handler: nested
+                excluded_http_codes: [404, 405]
+                buffer_size: 50
+
+            nested:
+                type: stream
+                path: php://stderr
+                level: info
+                formatter: monolog.formatter.json

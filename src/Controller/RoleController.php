@@ -66,22 +66,21 @@ class RoleController extends AbstractController
         $user = $this->getUser();
         $this->permissionGuard->ensure($user, 'settings.view');
 
-        try {
-            $this->roleManagementService->deleteRole($id);
-        } catch (NotFoundHttpException $e) {
-            return $this->json(['error' => $e->getMessage()], Response::HTTP_NOT_FOUND);
-        } catch (ConflictHttpException $e) {
-            return $this->json(['error' => $e->getMessage()], Response::HTTP_CONFLICT);
-        }
-
-        return $this->json(null, Response::HTTP_NO_CONTENT);
+        return $this->handleRoleAction(
+            function () use ($id): void {
+                $this->roleManagementService->deleteRole($id);
+            },
+            Response::HTTP_NO_CONTENT,
+        );
     }
 
-    /** @param callable(): array<string, mixed> $action */
+    /** @param callable(): mixed $action */
     private function handleRoleAction(callable $action, int $successStatus = Response::HTTP_OK): JsonResponse
     {
         try {
-            return $this->json($action(), $successStatus);
+            $result = $action();
+
+            return $this->json(is_array($result) ? $result : null, $successStatus);
         } catch (NotFoundHttpException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_NOT_FOUND);
         } catch (ConflictHttpException $e) {

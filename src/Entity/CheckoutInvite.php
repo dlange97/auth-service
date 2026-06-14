@@ -8,13 +8,6 @@ use App\Repository\CheckoutInviteRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * A one-time invitation link that lets a new customer create their own
- * Instance and admin account via the public checkout form.
- *
- * Hash is 64 hex chars (bin2hex(random_bytes(32))).
- * Once used, usedAt is stamped and further use is rejected.
- */
 #[ORM\Entity(repositoryClass: CheckoutInviteRepository::class)]
 #[ORM\Table(name: 'checkout_invite')]
 class CheckoutInvite

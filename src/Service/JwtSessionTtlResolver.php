@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Repository\JwtSessionSettingRepository;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Throwable;
 
@@ -15,6 +16,7 @@ final class JwtSessionTtlResolver
 
     public function __construct(
         private readonly JwtSessionSettingRepository $settingRepository,
+        private readonly LoggerInterface $logger,
         #[Autowire('%env(int:JWT_TOKEN_TTL)%')] private readonly int $fallbackTtlSeconds,
     ) {
     }
@@ -26,8 +28,10 @@ final class JwtSessionTtlResolver
             if (is_int($fromSetting)) {
                 return $this->normalize($fromSetting);
             }
-        } catch (Throwable) {
-            // Fallback to env-based TTL until migrations are applied.
+        } catch (Throwable $e) {
+            $this->logger->warning('Failed to resolve JWT session TTL from persisted settings. Falling back to configured TTL.', [
+                'exception' => $e,
+            ]);
         }
 
         return $this->normalize($this->fallbackTtlSeconds);

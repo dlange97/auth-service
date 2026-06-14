@@ -17,6 +17,10 @@ security:
       pattern: ^/auth/health$
       security: false
 
+    logout:
+      pattern: ^/auth/logout$
+      security: false
+
     checkout:
       pattern: ^/auth/checkout/
       security: false
@@ -46,9 +50,16 @@ security:
 
   access_control:
     - { path: ^/auth/health, roles: PUBLIC_ACCESS }
-    - { path: ^/auth/docs(?:\.json)?$, roles: PUBLIC_ACCESS }
+    - { path: ^/auth/docs(?:\.json)?$, roles: ROLE_ADMIN }
+    - { path: ^/auth/admin/security-log, roles: ROLE_ADMIN }
     - { path: ^/auth/login, roles: PUBLIC_ACCESS }
+    - { path: ^/auth/logout, roles: PUBLIC_ACCESS }
     - { path: ^/auth/request-access, roles: PUBLIC_ACCESS }
     - { path: ^/auth/checkout, roles: PUBLIC_ACCESS }
     - { path: ^/auth/instances/resolve, roles: PUBLIC_ACCESS }
     - { path: ^/auth/, roles: ROLE_USER }
+
+when@prod:
+  security:
+    access_control:
+      - { path: ^/, requires_channel: https }
