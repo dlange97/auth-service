@@ -18,16 +18,24 @@ final class UserSerializer
     public function serialize(User $user): array
     {
         return [
-            'id'              => $user->getId(),
-            'email'           => $user->getEmail(),
-            'firstName'       => $user->getFirstName(),
-            'lastName'        => $user->getLastName(),
-            'roles'           => $user->getRoles(),
-            'status'          => $user->getStatus(),
-            'language'        => $user->getLanguage(),
+            ...$this->serializeForList($user),
             'dashboardLayout' => $user->getDashboardLayout(),
             'permissions'     => $this->permissionService->getPermissionsForUser($user),
-            'createdAt'       => $user->getCreatedAt()?->format('c'),
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    public function serializeForList(User $user): array
+    {
+        return [
+            'id'        => $user->getId(),
+            'email'     => $user->getEmail(),
+            'firstName' => $user->getFirstName(),
+            'lastName'  => $user->getLastName(),
+            'roles'     => $user->getRoles(),
+            'status'    => $user->getStatus(),
+            'language'  => $user->getLanguage(),
+            'createdAt' => $user->getCreatedAt()?->format('c'),
         ];
     }
 }

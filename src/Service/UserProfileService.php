@@ -6,15 +6,15 @@ namespace App\Service;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Service\Locale\LanguagePolicy;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 final class UserProfileService
 {
-    private const SUPPORTED_LANGUAGES = ['en', 'pl'];
-
     public function __construct(
         private readonly UserRepository $userRepository,
         private readonly DashboardLayoutNormalizer $layoutNormalizer,
+        private readonly LanguagePolicy $languagePolicy,
     ) {
     }
 
@@ -25,10 +25,7 @@ final class UserProfileService
     public function updateProfile(User $user, array $data): User
     {
         if (array_key_exists('language', $data)) {
-            $lang = strtolower(trim((string) $data['language']));
-            if (!in_array($lang, self::SUPPORTED_LANGUAGES, true)) {
-                throw new BadRequestHttpException('Unsupported language. Use: en, pl.');
-            }
+            $lang = $this->languagePolicy->normalizeOrFail($data['language']);
             $user->setLanguage($lang);
         }
 

@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Service\AccessRequestService;
 use App\Service\PermissionGuard;
+use App\Service\Input\RequestJsonPayloadResolver;
 use App\Service\UserProfileService;
 use App\Service\UserRegistrationService;
 use App\Service\UserSerializer;
@@ -28,6 +29,7 @@ class AuthController extends AbstractController
         private readonly UserProfileService $profileService,
         private readonly AccessRequestService $accessRequestService,
         private readonly UserSerializer $userSerializer,
+        private readonly RequestJsonPayloadResolver $payloadResolver,
     ) {
     }
 
@@ -38,7 +40,7 @@ class AuthController extends AbstractController
         $currentUser = $this->getUser();
         $this->permissionGuard->ensure($currentUser, 'users.create');
 
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = $this->payloadResolver->resolve($request);
         $user = $this->registrationService->register($data);
         $token = $this->jwtManager->create($user);
 
@@ -79,7 +81,7 @@ class AuthController extends AbstractController
     #[Route('/request-access', name: 'request_access', methods: ['POST'])]
     public function requestAccess(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = $this->payloadResolver->resolve($request);
         $this->accessRequestService->sendRequest($data);
 
         return $this->json([
@@ -92,7 +94,7 @@ class AuthController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = $this->payloadResolver->resolve($request);
 
         $this->profileService->updateProfile($user, $data);
 
