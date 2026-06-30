@@ -125,4 +125,46 @@ final class UserRegistrationServiceTest extends TestCase
             'role' => 'ROLE_NONEXISTENT',
         ]);
     }
+
+    public function testCreateInvitedUserHasInvitedStatusAndNoPassword(): void
+    {
+        $this->validator->method('validate')->willReturn(new ConstraintViolationList());
+        $this->userRepository->method('findByEmail')->willReturn(null);
+        $this->permissionService->method('isRoleSupported')->willReturn(true);
+        $this->passwordHasher->expects($this->never())->method('hashPassword');
+        $this->userRepository->expects($this->once())->method('save');
+
+        $user = $this->service->createInvitedUser([
+            'email' => 'invitee@example.com',
+            'role' => 'ROLE_EDITOR',
+            'firstName' => 'Inv',
+            'lastName' => 'Itee',
+        ]);
+
+        $this->assertSame(User::STATUS_INVITED, $user->getStatus());
+        $this->assertFalse($user->isActive());
+        $this->assertNull($user->getPassword());
+        $this->assertContains('ROLE_EDITOR', $user->getRoles());
+        $this->assertNotNull($user->getId());
+    }
+
+    public function testCreateInvitedUserThrowsOnEmptyEmail(): void
+    {
+        $this->expectException(BadRequestHttpException::class);
+        $this->expectExceptionMessage('Email is required.');
+
+        $this->service->createInvitedUser(['email' => '', 'role' => 'ROLE_USER']);
+    }
+
+    public function testCreateInvitedUserThrowsOnDuplicateEmail(): void
+    {
+        $this->permissionService->method('isRoleSupported')->willReturn(true);
+        $existing = (new User())->setId('existing-id')->setEmail('invitee@example.com');
+        $this->userRepository->method('findByEmail')->willReturn($existing);
+
+        $this->expectException(ConflictHttpException::class);
+        $this->expectExceptionMessage('An account with this email already exists.');
+
+        $this->service->createInvitedUser(['email' => 'invitee@example.com', 'role' => 'ROLE_USER']);
+    }
 }

@@ -46,3 +46,7 @@ services:
     arguments:
       $notificationServiceUrl: '%env(string:NOTIFICATION_SERVICE_URL)%'
       $internalNotificationToken: '%env(string:INTERNAL_NOTIFICATION_TOKEN)%'
+
+  App\Service\InviteService:
+    arguments:
+      $appBaseUrl: '%env(string:BASE_URL)%'

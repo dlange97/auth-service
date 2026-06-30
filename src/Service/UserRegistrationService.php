@@ -72,6 +72,43 @@ final class UserRegistrationService
         return $user;
     }
 
+    /**
+     * Creates a user in the "invited" state: no password is set yet and the
+     * account is inactive until the invitee accepts the invitation and chooses
+     * their own password via a secure link.
+     *
+     * @param array<string, mixed> $data
+     * @throws BadRequestHttpException|ConflictHttpException|UnprocessableEntityHttpException
+     */
+    public function createInvitedUser(array $data): User
+    {
+        $email = trim($data['email'] ?? '');
+        $role  = $data['role'] ?? PermissionService::ROLE_USER;
+
+        if ($email === '') {
+            throw new BadRequestHttpException('Email is required.');
+        }
+
+        if (!$this->permissionService->isRoleSupported($role)) {
+            throw new BadRequestHttpException('Unsupported role.');
+        }
+
+        $this->ensureEmailAvailable($email);
+
+        $user = new User();
+        $user->setId(Uuid::uuid4()->toString());
+        $user->setEmail($email);
+        $user->setFirstName($data['firstName'] ?? null);
+        $user->setLastName($data['lastName'] ?? null);
+        $user->setRoles([$role]);
+        $user->setStatus(User::STATUS_INVITED);
+
+        $this->validateEntity($user);
+        $this->userRepository->save($user, true);
+
+        return $user;
+    }
+
     private function validateCredentials(string $email, string $password): void
     {
         if ($email === '' || $password === '') {
