@@ -7,6 +7,7 @@ namespace App\Tests\Service;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Security\PermissionService;
+use App\Service\Locale\LanguagePolicy;
 use App\Service\UserManagementService;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -37,6 +38,7 @@ final class UserManagementServiceTest extends TestCase
             $this->permissionService,
             $this->validator,
             $this->em,
+            new LanguagePolicy(),
         );
     }
 

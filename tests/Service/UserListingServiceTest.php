@@ -6,7 +6,9 @@ namespace App\Tests\Service;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Security\PermissionService;
 use App\Service\UserListingService;
+use App\Service\UserSerializer;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -18,7 +20,8 @@ final class UserListingServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->userRepository = $this->createMock(UserRepository::class);
-        $this->service = new UserListingService($this->userRepository);
+        $permissionService = $this->createMock(PermissionService::class);
+        $this->service = new UserListingService($this->userRepository, new UserSerializer($permissionService));
     }
 
     public function testListUsersReturnsSerializedItemsAndPagination(): void

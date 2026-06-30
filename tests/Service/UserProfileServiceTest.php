@@ -7,6 +7,7 @@ namespace App\Tests\Service;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\DashboardLayoutNormalizer;
+use App\Service\Locale\LanguagePolicy;
 use App\Service\UserProfileService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -26,6 +27,7 @@ final class UserProfileServiceTest extends TestCase
         $this->service = new UserProfileService(
             $this->userRepository,
             $this->layoutNormalizer,
+            new LanguagePolicy(),
         );
     }
 

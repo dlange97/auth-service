@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Security\PermissionService;
+use App\Service\Locale\LanguagePolicy;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
@@ -16,13 +17,12 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class UserManagementService
 {
-    private const SUPPORTED_LANGUAGES = ['en', 'pl'];
-
     public function __construct(
         private readonly UserRepository $userRepository,
         private readonly PermissionService $permissionService,
         private readonly ValidatorInterface $validator,
         private readonly EntityManagerInterface $em,
+        private readonly LanguagePolicy $languagePolicy,
     ) {
     }
 
@@ -73,10 +73,7 @@ final class UserManagementService
         }
 
         if (array_key_exists('language', $data)) {
-            $lang = strtolower(trim((string) $data['language']));
-            if (!in_array($lang, self::SUPPORTED_LANGUAGES, true)) {
-                throw new BadRequestHttpException('Unsupported language. Use: en, pl.');
-            }
+            $lang = $this->languagePolicy->normalizeOrFail($data['language']);
             $user->setLanguage($lang);
         }
 
