@@ -41,3 +41,8 @@ services:
       $apiSensitiveLimiter: "@limiter.api_sensitive"
     tags:
       - { name: kernel.event_subscriber }
+
+  App\Service\NotificationGateway:
+    arguments:
+      $notificationServiceUrl: '%env(string:NOTIFICATION_SERVICE_URL)%'
+      $internalNotificationToken: '%env(string:INTERNAL_NOTIFICATION_TOKEN)%'

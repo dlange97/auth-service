@@ -9,6 +9,7 @@ use App\Repository\RoleDefinitionRepository;
 use App\Repository\UserRepository;
 use App\Security\PermissionService;
 use App\Service\PermissionGuard;
+use App\Service\NotificationGateway;
 use App\Service\UserListingService;
 use App\Service\UserManagementService;
 use App\Service\UserRegistrationService;
@@ -27,6 +28,7 @@ class UserManagementController extends AbstractController
         private readonly UserListingService $userListingService,
         private readonly UserRegistrationService $registrationService,
         private readonly UserManagementService $managementService,
+        private readonly NotificationGateway $notificationGateway,
         private readonly UserSerializer $userSerializer,
         private readonly PermissionService $permissionService,
         private readonly UserRepository $userRepository,
@@ -131,9 +133,27 @@ class UserManagementController extends AbstractController
 
         $data = json_decode($request->getContent(), true) ?? [];
         $user = $this->registrationService->createUser($data);
+        $inviteUser = filter_var($data['inviteUser'] ?? false, FILTER_VALIDATE_BOOL);
+        $inviteNotificationSent = false;
+
+        if ($inviteUser) {
+            $inviteNotificationSent = $this->notificationGateway->sendUserInvitation([
+                'recipientUserId' => $user->getId(),
+                'recipientEmail' => (string) $user->getEmail(),
+                'invitedUserEmail' => (string) $user->getEmail(),
+                'invitedBy' => [
+                    'userId' => $currentUser->getId(),
+                    'email' => (string) $currentUser->getEmail(),
+                    'firstName' => (string) ($currentUser->getFirstName() ?? ''),
+                    'lastName' => (string) ($currentUser->getLastName() ?? ''),
+                ],
+            ]);
+        }
 
         return $this->json([
             'message' => 'User created successfully.',
+            'inviteRequested' => $inviteUser,
+            'inviteNotificationSent' => $inviteNotificationSent,
             'user'    => $this->userSerializer->serialize($user),
         ], Response::HTTP_CREATED);
     }
