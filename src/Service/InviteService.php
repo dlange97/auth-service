@@ -27,6 +27,9 @@ final class InviteService
     ) {
     }
 
+    /**
+     * @return array{invite: UserInvite, rawToken: string, link: string}
+     */
     public function createInvite(User $user): array
     {
         $rawToken = bin2hex(random_bytes(32));
