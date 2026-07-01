@@ -73,10 +73,6 @@ final class UserRegistrationService
     }
 
     /**
-     * Creates a user in the "invited" state: no password is set yet and the
-     * account is inactive until the invitee accepts the invitation and chooses
-     * their own password via a secure link.
-     *
      * @param array<string, mixed> $data
      * @throws BadRequestHttpException|ConflictHttpException|UnprocessableEntityHttpException
      */
