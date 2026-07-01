@@ -25,6 +25,10 @@ security:
       pattern: ^/auth/checkout/
       security: false
 
+    invite:
+      pattern: ^/auth/invite/
+      security: false
+
     instance_resolve:
       pattern: ^/auth/instances/resolve$
       security: false
@@ -56,6 +60,7 @@ security:
     - { path: ^/auth/logout, roles: PUBLIC_ACCESS }
     - { path: ^/auth/request-access, roles: PUBLIC_ACCESS }
     - { path: ^/auth/checkout, roles: PUBLIC_ACCESS }
+    - { path: ^/auth/invite, roles: PUBLIC_ACCESS }
     - { path: ^/auth/instances/resolve, roles: PUBLIC_ACCESS }
     - { path: ^/auth/, roles: ROLE_USER }
 

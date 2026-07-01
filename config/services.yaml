@@ -19,6 +19,14 @@ services:
           method: onJWTCreated,
         }
 
+  App\EventListener\JwtAuthenticationSuccessListener:
+    tags:
+      - {
+          name: kernel.event_listener,
+          event: lexik_jwt_authentication.on_authentication_success,
+          method: onAuthenticationSuccess,
+        }
+
   # ── Instance ID request listener ─────────────────────────
   App\EventListener\InstanceRequestListener:
     tags:
@@ -41,3 +49,12 @@ services:
       $apiSensitiveLimiter: "@limiter.api_sensitive"
     tags:
       - { name: kernel.event_subscriber }
+
+  App\Service\NotificationGateway:
+    arguments:
+      $notificationServiceUrl: "%env(string:NOTIFICATION_SERVICE_URL)%"
+      $internalNotificationToken: "%env(string:INTERNAL_NOTIFICATION_TOKEN)%"
+
+  App\Service\InviteService:
+    arguments:
+      $appBaseUrl: "%env(string:BASE_URL)%"

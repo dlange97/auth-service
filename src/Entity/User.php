@@ -27,6 +27,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public const STATUS_ACTIVE = 'active';
     public const STATUS_INACTIVE = 'inactive';
+    public const STATUS_INVITED = 'invited';
+    public const STATUS_INVITE_ACCEPTED = 'invite_accepted';
 
     #[ORM\Id]
     #[ORM\Column(type: Types::STRING, length: 36, unique: true)]
