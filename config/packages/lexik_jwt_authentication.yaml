@@ -6,15 +6,8 @@ lexik_jwt_authentication:
   user_id_claim: email
   # Keep the token in the JSON response body so mobile / API clients can still read it.
   remove_token_from_body_when_cookies_used: false
-  # Set an httpOnly cookie on every successful login response.
-  set_cookies:
-    jwt_token:
-      lifetime: null # inherits token_ttl
-      samesite: lax
-      path: /
-      domain: null
-      secure: false # set to true in production (HTTPS)
-      httpOnly: true
+  # Cookie is set by App\EventListener\JwtAuthenticationSuccessListener
+  # so its lifetime follows dynamic JwtSessionSetting TTL.
   # Extract the JWT from the cookie on every authenticated request.
   token_extractors:
     authorization_header:
