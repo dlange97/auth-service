@@ -32,6 +32,7 @@ Thumbs.db
 
 # Docker local overrides
 compose.override.yaml
+/docker/php/xdebug.local.ini
 
 ###> phpunit/phpunit ###
 /phpunit.xml
@@ -46,3 +47,9 @@ compose.override.yaml
 .env.*
 !.env.example
 !.env*.example
+
+# Local Symfony config overrides
+/config/services.local.yaml
+/config/services.local.yml
+/config/packages/**/*.local.yaml
+/config/packages/**/*.local.yml
