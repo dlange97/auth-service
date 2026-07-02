@@ -14,6 +14,16 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
+/**
+ * Issues and consumes single-use, time-limited invitation tokens.
+ *
+ * Security model:
+ *  - The raw token carries 256 bits of entropy (random_bytes(32)).
+ *  - Only the SHA-256 hash of the token is stored, so a database read cannot
+ *    reveal a usable secret.
+ *  - Tokens are single-use and expire after a fixed window.
+ *  - Each invite also carries a public UUID "reference" persisted in the DB.
+ */
 final class InviteService
 {
     private const MIN_PASSWORD_LENGTH = 8;
@@ -28,6 +38,8 @@ final class InviteService
     }
 
     /**
+     * Creates a pending invitation for the given (already persisted or managed) user.
+     *
      * @return array{invite: UserInvite, rawToken: string, link: string}
      */
     public function createInvite(User $user): array
@@ -54,6 +66,10 @@ final class InviteService
         return rtrim($this->appBaseUrl, '/') . '/set-password/' . $rawToken;
     }
 
+    /**
+     * Returns the invite if the token is valid and usable, otherwise null.
+     * Expired-but-pending invites are flagged as expired as a side effect.
+     */
     public function findUsableInvite(string $rawToken): ?UserInvite
     {
         if ($rawToken === '') {
@@ -76,6 +92,8 @@ final class InviteService
     }
 
     /**
+     * Validates the token and sets the user's password, activating the account.
+     *
      * @throws NotFoundHttpException when the token is invalid, used or expired
      * @throws BadRequestHttpException when the password is too weak
      * @throws \RuntimeException on persistence failure
