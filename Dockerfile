@@ -2,7 +2,7 @@ FROM php:8.3-fpm-alpine
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-RUN apk add --no-cache icu-dev libzip-dev openssl bash rabbitmq-c rabbitmq-c-dev $PHPIZE_DEPS \
+RUN apk add --no-cache icu-dev libzip-dev openssl bash linux-headers rabbitmq-c rabbitmq-c-dev $PHPIZE_DEPS \
     && pecl install amqp pcov xdebug \
     && docker-php-ext-enable amqp \
     && docker-php-ext-enable pcov xdebug \
