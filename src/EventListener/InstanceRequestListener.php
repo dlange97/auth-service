@@ -13,6 +13,9 @@ final readonly class InstanceRequestListener extends SharedInstanceRequestListen
         parent::__construct([
             '/auth/health',
             '/auth/login',
+            '/auth/logout',
+            '/auth/me',
+            '/auth/validate',
             '/auth/request-access',
             '/auth/checkout',
             '/auth/register',
